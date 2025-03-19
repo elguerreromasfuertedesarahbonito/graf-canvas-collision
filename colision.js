@@ -22,7 +22,10 @@ class Circle {
 
     draw(context) {
         context.beginPath();
-        context.strokeStyle = this.color;
+        context.fillStyle = this.color; // Set fill color
+        context.fill(); // Fill the circle
+        context.strokeStyle = this.color; // Set stroke color
+
         context.textAlign = "center";
         context.textBaseline = "middle";
         context.font = "20px Arial";
@@ -42,23 +45,43 @@ class Circle {
             this.dx = -this.dx;
         }
         // Actualizar la posición Y
-        this.posY += this.dy;
-        // Cambiar la dirección si el círculo llega al borde del canvas en Y
-        if (this.posY + this.radius > window_height || this.posY - this.radius < 0) {
-            this.dy = -this.dy;
+        this.posY += this.speed; // Fall downwards at assigned speed
+
+        // Regenerate circle if it falls below the canvas
+        if (this.posY - this.radius > window_height) {
+            this.posY = -this.radius; // Reset to just above the canvas
+            this.posX = Math.random() * (window_width - this.radius * 2) + this.radius; // New random X position
+            this.speed = Math.random() * 4 + 1; // New random speed
         }
     }
 }
 
+let removedCirclesCount = 0; // Counter for removed circles
+
 // Crear un array para almacenar N círculos
 let circles = [];
+
+canvas.addEventListener('click', (event) => {
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+
+    circles = circles.filter(circle => {
+        const isInside = Math.sqrt((mouseX - circle.posX) ** 2 + (mouseY - circle.posY) ** 2) < circle.radius;
+        if (isInside) {
+            removedCirclesCount++;
+            document.getElementById('counter').innerText = `Círculos eliminados: ${removedCirclesCount}`;
+        }
+        return !isInside; // Keep circles that are not clicked
+    });
+});
 
 // Función para generar círculos aleatorios
 function generateCircles(n) {
     for (let i = 0; i < n; i++) {
         let radius = Math.random() * 30 + 20; // Radio entre 20 y 50
         let x = Math.random() * (window_width - radius * 2) + radius;
-        let y = Math.random() * (window_height - radius * 2) + radius;
+        let y = -radius; // Start just above the canvas
+
         let color = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Color aleatorio
         let speed = Math.random() * 4 + 1; // Velocidad entre 1 y 5
         let text = `C${i + 1}`; // Etiqueta del círculo
